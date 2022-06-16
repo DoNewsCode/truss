@@ -1,0 +1,59 @@
+name: Go
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build & Test -- Go ${{ matrix.go }}, protoc ${{ matrix.protoc }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [ '1.16.x', '1.17.x' ]
+        protoc: [ '3.19.1' ]
+    env:
+      GO111MODULE: on
+      PROTOC_VER: ${{ matrix.protoc }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          path: go/src/github.com/DoNewsCode/truss
+
+      - name: Setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Deps
+        env:
+          GOPATH: /home/runner/work/truss/truss/go
+        run: |
+          sudo apt update && sudo apt install -y git unzip build-essential
+          wget https://github.com/google/protobuf/releases/download/v${PROTOC_VER}/protoc-${PROTOC_VER}-linux-x86_64.zip
+          mv protoc-${PROTOC_VER}-linux-x86_64.zip $HOME
+          unzip ~/protoc-${PROTOC_VER}-linux-x86_64.zip -d $HOME
+          
+          cd go/src/github.com/DoNewsCode/truss
+          make dependencies
+
+      - name: Build
+        env:
+          GOPATH: /home/runner/work/truss/truss/go
+        run: |
+          export PATH=$HOME/bin/:$GOPATH/bin/:$PATH
+          
+          cd go/src/github.com/DoNewsCode/truss
+          make
+
+      - name: Test
+        env:
+          GOPATH: /home/runner/work/truss/truss/go
+        run: |
+          export PATH=$HOME/bin/:$GOPATH/bin/:$PATH
+          
+          cd go/src/github.com/DoNewsCode/truss
+          make test
