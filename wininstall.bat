@@ -23,28 +23,17 @@ FOR /F "tokens=* USEBACKQ" %%F IN (`%DATE_FMT_CMD%`) DO (
 @ECHO ON
 go get github.com/pauln/go-datefmt
 
-go get -u github.com/golang/protobuf
+go get -u google.golang.org/protobuf
 go get -u google.golang.org/genproto
-
-:: go get github.com/gogo/protobuf/protoc-gen-gogo
-go get -u github.com/gogo/protobuf/protoc-gen-gogo
-go get -u github.com/gogo/protobuf/protoc-gen-gogofaster
-
-:: go get github.com/gogo/protobuf/proto
 go get -u github.com/gogo/protobuf/proto
-
-:: go get  github.com/grpc-ecosystem/grpc-gateway/v2/...
-go get -u github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
-go get -u github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
-
-:: go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
-go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
-
-:: go get google.golang.org/protobuf/cmd/protoc-gen-go
-go get -u google.golang.org/protobuf/cmd/protoc-gen-go
-
-:: go get github.com/envoyproxy/protoc-gen-validate
-go get -u github.com/envoyproxy/protoc-gen-validate
+go install github.com/gogo/protobuf/protoc-gen-gogo
+go install github.com/gogo/protobuf/protoc-gen-gogofaster
+go install github.com/gogo/protobuf/protoc-gen-gofast
+go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
+go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
+go install google.golang.org/protobuf/cmd/protoc-gen-go
+go install github.com/envoyproxy/protoc-gen-validate
 
 go install -ldflags "-X 'main.version=%SHA%' -X 'main.date=%HEAD_DATE%'" github.com/DoNewsCode/truss/cmd/truss
 @ECHO OFF

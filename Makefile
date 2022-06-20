@@ -9,17 +9,17 @@ VERSION_DATE := $(shell $(MAKEFILE_PATH)/commit_date.sh)
 default: truss
 
 dependencies:
-	go get -u github.com/golang/protobuf
+	go get -u google.golang.org/protobuf
 	go get -u google.golang.org/genproto
-	go get -u github.com/gogo/protobuf/protoc-gen-gogo
-	go get -u github.com/gogo/protobuf/protoc-gen-gogofaster
 	go get -u github.com/gogo/protobuf/proto
-	go get -u github.com/gogo/protobuf/protoc-gen-gofast
-	go get -u github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
-	go get -u github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
-	go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
-	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
-	go get -u github.com/envoyproxy/protoc-gen-validate
+	go install github.com/gogo/protobuf/protoc-gen-gogo
+	go install github.com/gogo/protobuf/protoc-gen-gogofaster
+	go install github.com/gogo/protobuf/protoc-gen-gofast
+	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
+	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
+	go install google.golang.org/protobuf/cmd/protoc-gen-go
+	go install github.com/envoyproxy/protoc-gen-validate
 
 # Install truss
 truss:
