@@ -9,6 +9,8 @@ VERSION_DATE := $(shell $(MAKEFILE_PATH)/commit_date.sh)
 default: truss
 
 dependencies:
+	go get -u github.com/golang/protobuf
+	go get -u google.golang.org/genproto
 	go get -u github.com/gogo/protobuf/protoc-gen-gogo
 	go get -u github.com/gogo/protobuf/protoc-gen-gogofaster
 	go get -u github.com/gogo/protobuf/proto
