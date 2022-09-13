@@ -3,20 +3,8 @@
 ## Dependencies
 
 1. Everything required to install `truss`
-2. go-bindata for compiling templates into binary
-```
-$ go get github.com/jteeuwen/go-bindata/...
-```
 
 ## Building
-
-Whenever templates are modified, the templates must be recompiled to binary,
-this is done with:
-
-```
-$ go generate github.com/DoNewsCode/truss/...
-```
-
 Then to build truss and its protoc plugin to your $GOPATH/bin directory:
 
 ```
