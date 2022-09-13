@@ -15,14 +15,7 @@ FOR /F "tokens=* USEBACKQ" %%F IN (`%HEAD_DATE_CMD%`) DO (
 	SET GIT_COMMIT_EPOC=%%F
 )
 
-SET DATE_FMT_CMD="go-datefmt -ts %GIT_COMMIT_EPOC% -fmt UnixDate -utc"
-FOR /F "tokens=* USEBACKQ" %%F IN (`%DATE_FMT_CMD%`) DO (
-	SET HEAD_DATE=%%F
-)
-
 @ECHO ON
-go get github.com/pauln/go-datefmt
-
 go get -u google.golang.org/genproto
 go get -u github.com/gogo/protobuf/protoc-gen-gogo
 go get -u github.com/gogo/protobuf/protoc-gen-gogofaster
@@ -33,5 +26,5 @@ go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
 go get -u google.golang.org/protobuf/cmd/protoc-gen-go
 go get -u github.com/envoyproxy/protoc-gen-validate
 
-go install -ldflags "-X 'main.version=%SHA%' -X 'main.date=%HEAD_DATE%'" github.com/DoNewsCode/truss/cmd/truss
+go install -ldflags "-X 'main.version=%SHA%'" github.com/DoNewsCode/truss/cmd/truss
 @ECHO OFF
