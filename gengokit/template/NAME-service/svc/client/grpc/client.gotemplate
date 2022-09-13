@@ -11,23 +11,23 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/go-kit/kit/endpoint"
-	grpctransport "github.com/go-kit/kit/transport/grpc"
+	kitgrpc "github.com/go-kit/kit/transport/grpc"
 
 	// This Service
-	svc "{{.ImportPath -}} /gen"
+	svc "{{.ImportPath -}} /svc"
 	pb "{{.PBImportPath -}}"
 )
 
 // New returns an service backed by a gRPC client connection. It is the
 // responsibility of the caller to dial, and later close, the connection.
-func New(conn *grpc.ClientConn, options ...grpctransport.ClientOption) (svc.Endpoints, error) {
+func New(conn *grpc.ClientConn, options ...kitgrpc.ClientOption) (svc.Endpoints, error) {
 
 	{{- with $te := .}}
 		{{- with $pkgName := $te.PBPackageName}}
 			{{- range $i := $te.Service.Methods}}
 				var {{ToLower $i.Name}}Endpoint endpoint.Endpoint
 				{
-					{{ToLower $i.Name}}Endpoint = grpctransport.NewClient(
+					{{ToLower $i.Name}}Endpoint = kitgrpc.NewClient(
 						conn,
 						"{{$pkgName}}.{{$te.Service.Name}}",
 						"{{$i.Name}}",

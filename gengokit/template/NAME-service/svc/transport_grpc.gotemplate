@@ -3,7 +3,7 @@
 // Version: {{.Version}}
 // Version Date: {{.VersionDate}}
 
-package gen
+package svc
 
 // This file provides server-side bindings for the gRPC transport.
 // It utilizes the transport/grpc.Server.
@@ -14,22 +14,22 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
-	grpctransport "github.com/go-kit/kit/transport/grpc"
+	kitgrpc "github.com/go-kit/kit/transport/grpc"
 
 	// This Service
 	pb "{{.PBImportPath -}}"
 )
 
 // MakeGRPCServer makes a set of endpoints available as a gRPC {{.Service.Name}}Server.
-func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) pb.{{.Service.Name}}Server {
-	serverOptions := []grpctransport.ServerOption{
-		grpctransport.ServerBefore(metadataToContext),
+func MakeGRPCServer(endpoints Endpoints, options ...kitgrpc.ServerOption) pb.{{.Service.Name}}Server {
+	serverOptions := []kitgrpc.ServerOption{
+		kitgrpc.ServerBefore(metadataToContext),
 	}
 	serverOptions = append(serverOptions, options...)
 	return &grpcServer{
 	// {{ ToLower .Service.Name }}
 	{{range $i := .Service.Methods}}
-		{{ToLower $i.Name}}: grpctransport.NewServer(
+		{{ToLower $i.Name}}: kitgrpc.NewServer(
 			endpoints.{{$i.Name}}Endpoint,
 			DecodeGRPC{{$i.Name}}Request,
 			EncodeGRPC{{$i.Name}}Response,
@@ -42,7 +42,7 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 // grpcServer implements the {{GoName .Service.Name}}Server interface
 type grpcServer struct {
 {{range $i := .Service.Methods}}
-	{{ToLower $i.Name}}   grpctransport.Handler
+	{{ToLower $i.Name}}   kitgrpc.Handler
 {{- end}}
 }
 

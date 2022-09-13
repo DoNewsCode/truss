@@ -25,11 +25,11 @@ func read(fileName string) func() ([]byte, error) {
 }
 
 var _bindata = map[string]func() ([]byte, error){
-	"gen/client/grpc/client.gotemplate": read("NAME-service/gen/client/grpc/client.gotemplate"),
-	"gen/client/http/client.gotemplate": read("NAME-service/gen/client/http/client.gotemplate"),
-	"gen/endpoints.gotemplate":          read("NAME-service/gen/endpoints.gotemplate"),
-	"gen/transport_grpc.gotemplate":     read("NAME-service/gen/transport_grpc.gotemplate"),
-	"gen/transport_http.gotemplate":     read("NAME-service/gen/transport_http.gotemplate"),
+	"svc/client/grpc/client.gotemplate": read("NAME-service/svc/client/grpc/client.gotemplate"),
+	"svc/client/http/client.gotemplate": read("NAME-service/svc/client/http/client.gotemplate"),
+	"svc/endpoints.gotemplate":          read("NAME-service/svc/endpoints.gotemplate"),
+	"svc/transport_grpc.gotemplate":     read("NAME-service/svc/transport_grpc.gotemplate"),
+	"svc/transport_http.gotemplate":     read("NAME-service/svc/transport_http.gotemplate"),
 	"service.gotemplate":                read("NAME-service/service.gotemplate"),
 }
 

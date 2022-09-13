@@ -3,7 +3,7 @@ package templates
 const HandlerMethods = `
 {{ with $te := .}}
 		{{range $i := .Methods}}
-		func (s {{ToLower $te.ServiceName}}Service) {{.Name}}(ctx context.Context, in *pb.{{GoName .RequestType.Name}}) (*pb.{{GoName .ResponseType.Name}}, error){
+		func (s Service) {{.Name}}(ctx context.Context, in *pb.{{GoName .RequestType.Name}}) (*pb.{{GoName .ResponseType.Name}}, error){
 			var resp pb.{{GoName .ResponseType.Name}}
 			return &resp, nil
 		}

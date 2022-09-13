@@ -15,9 +15,9 @@ import (
 )
 
 var (
-	docPath = flag.String("doc", "", "The doc path of the project")
+	docPath = flag.String("doc", "", "The doc path of the project, the path must exist")
 	libPath = flag.String("lib", "", "The proto path of the project")
-	pgvPath = flag.String("pgv_out", "", "The PGV output path of the project")
+	pgvPath = flag.String("pgvout", "", "The PGV output path of the project")
 )
 
 // GeneratePBDotGo creates .pb.go files from the passed protoPaths and writes
@@ -125,12 +125,14 @@ func protoc(protoPaths, gopath []string, plugin, outDir string) error {
 		cmdArgs = append(cmdArgs, "--openapiv2_out="+*docPath,
 			"--openapiv2_opt=logtostderr=true,json_names_for_fields=false,disable_default_errors=true")
 	}
+	pgvOutPath := outDir
 	if *pgvPath != "" {
-		cmdArgs = append(cmdArgs,
-			"--validate_out",
-			"lang=go:"+*pgvPath,
-		)
+		pgvOutPath = *pgvPath
 	}
+	cmdArgs = append(cmdArgs,
+		"--validate_out",
+		"lang=go:"+pgvOutPath,
+	)
 
 	// Append each definition file path to the end of that command args
 	cmdArgs = append(cmdArgs, protoPaths...)

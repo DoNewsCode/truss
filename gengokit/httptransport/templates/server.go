@@ -63,7 +63,7 @@ var ServerTemplate = `
 // Version: {{.Version}}
 // Version Date: {{.VersionDate}}
 
-package gen
+package svc
 
 // This file provides server-side bindings for the HTTP transport.
 // It utilizes the transport/http.Server.
@@ -85,7 +85,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	httptransport "github.com/go-kit/kit/transport/http"
+	kithttp "github.com/go-kit/kit/transport/http"
 
 	// This service
 	pb "{{.PBImportPath -}}"
@@ -97,7 +97,7 @@ var (
 	_ = fmt.Sprint
 	_ = bytes.Compare
 	_ = strconv.Atoi
-	_ = httptransport.NewServer
+	_ = kithttp.NewServer
 	_ = ioutil.NopCloser
 	_ = pb.New{{.Service.Name}}Client
 	_ = io.Copy
@@ -106,12 +106,12 @@ var (
 
 // MakeHTTPHandler returns a handler that makes a set of endpoints available
 // on predefined paths.
-func MakeHTTPHandler(endpoints Endpoints, options ...httptransport.ServerOption) http.Handler {
+func MakeHTTPHandler(endpoints Endpoints, options ...kithttp.ServerOption) http.Handler {
 	{{- if .HTTPHelper.Methods}}
-		serverOptions := []httptransport.ServerOption{
-			httptransport.ServerBefore(headersToContext),
-			httptransport.ServerErrorEncoder(errorEncoder),
-			httptransport.ServerAfter(httptransport.SetContentType(contentType)),
+		serverOptions := []kithttp.ServerOption{
+			kithttp.ServerBefore(headersToContext),
+			kithttp.ServerErrorEncoder(errorEncoder),
+			kithttp.ServerAfter(kithttp.SetContentType(contentType)),
 		}
 		serverOptions = append(serverOptions, options...)
 	{{- end }}
@@ -119,7 +119,7 @@ func MakeHTTPHandler(endpoints Endpoints, options ...httptransport.ServerOption)
 
 	{{range $method := .HTTPHelper.Methods}}
 		{{range $binding := $method.Bindings}}
-			m.Methods("{{$binding.Verb | ToUpper}}").Path("{{$binding.PathTemplate}}").Handler(httptransport.NewServer(
+			m.Methods("{{$binding.Verb | ToUpper}}").Path("{{$binding.PathTemplate}}").Handler(kithttp.NewServer(
 				endpoints.{{$method.Name}}Endpoint,
 				DecodeHTTP{{$binding.Label}}Request,
 				EncodeHTTPGenericResponse,
@@ -145,13 +145,13 @@ func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 		}
 	}
 	w.Header().Set("Content-Type", contentType)
-	if headerer, ok := err.(httptransport.Headerer); ok {
+	if headerer, ok := err.(kithttp.Headerer); ok {
 		for k := range headerer.Headers() {
 			w.Header().Set(k, headerer.Headers().Get(k))
 		}
 	}
 	code := http.StatusInternalServerError
-	if sc, ok := err.(httptransport.StatusCoder); ok {
+	if sc, ok := err.(kithttp.StatusCoder); ok {
 		code = sc.StatusCode()
 	}
 	w.WriteHeader(code)

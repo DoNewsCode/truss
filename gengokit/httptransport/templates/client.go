@@ -126,17 +126,17 @@ import (
 	{{- end }}
 
 	"github.com/go-kit/kit/endpoint"
-	httptransport "github.com/go-kit/kit/transport/http"
+	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/pkg/errors"
 
 	// This Service
-	svc "{{.ImportPath -}} /gen"
+	svc "{{.ImportPath -}} /svc"
 	pb "{{.PBImportPath -}}"
 )
 
 var (
 	_ = endpoint.Chain
-	_ = httptransport.NewClient
+	_ = kithttp.NewClient
 	_ = fmt.Sprint
 	_ = bytes.Compare
 	_ = ioutil.NopCloser
@@ -145,7 +145,7 @@ var (
 // New returns a service backed by an HTTP server living at the remote
 // instance. We expect instance to come from a service discovery system, so
 // likely of the form "host:port".
-func New(instance string, options ...httptransport.ClientOption) (pb.{{.Service.Name}}Server, error) {
+func New(instance string, options ...kithttp.ClientOption) (pb.{{.Service.Name}}Server, error) {
 
 	if !strings.HasPrefix(instance, "http") {
 		instance = "http://" + instance
@@ -165,7 +165,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.{{.Service.
 			{{ with $binding := index $method.Bindings 0 -}}
 				var {{$binding.Label}}Endpoint endpoint.Endpoint
 				{
-					{{$binding.Label}}Endpoint = httptransport.NewClient(
+					{{$binding.Label}}Endpoint = kithttp.NewClient(
 						"{{$binding.Verb | ToUpper}}",
 						copyURL(u, "{{$binding.BasePath}}"),
 						EncodeHTTP{{$binding.Label}}Request,
@@ -198,8 +198,8 @@ func copyURL(base *url.URL, path string) *url.URL {
 // the context and add them to the http request as headers.  Note that keys
 // will have net/http.CanonicalHeaderKey called on them before being send over
 // the wire and that is the form they will be available in the server context.
-func CtxValuesToSend(keys ...string) httptransport.ClientOption {
-	return httptransport.ClientBefore(func(ctx context.Context, r *http.Request) context.Context {
+func CtxValuesToSend(keys ...string) kithttp.ClientOption {
+	return kithttp.ClientBefore(func(ctx context.Context, r *http.Request) context.Context {
 		for _, k := range keys {
 			if v, ok := ctx.Value(k).(string); ok {
 				r.Header.Set(k, v)
