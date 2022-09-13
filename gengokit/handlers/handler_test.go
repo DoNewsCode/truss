@@ -77,7 +77,7 @@ func TestServerMethsTempl(t *testing.T) {
 	}
 	genBytes, err := ioutil.ReadAll(gen)
 	const expected = `
-		func (s protoService) ProtoMethod(ctx context.Context, in *pb.RequestMessage) (*pb.ResponseMessage, error){
+		func (s Service) ProtoMethod(ctx context.Context, in *pb.RequestMessage) (*pb.ResponseMessage, error){
 			var resp pb.ResponseMessage
 			return &resp, nil
 		}
@@ -221,13 +221,13 @@ func TestIsValidFunc(t *testing.T) {
 	func init() {}`
 
 	const valid = `package p;
-	func (s protoService) ProtoMethod(context.Context, pb.RequestMessage) (pb.ResponseMessage, error) {}`
+	func (s Service) ProtoMethod(context.Context, pb.RequestMessage) (pb.ResponseMessage, error) {}`
 
 	const invalidRecv = `package p;
-	func (s fooService) ProtoMethod(context.Context, pb.RequestMessage) (pb.ResponseMessage, error) {}`
+	func (s Service) ProtoMethod(context.Context, pb.RequestMessage) (pb.ResponseMessage, error) {}`
 
 	const invalidFuncName = `package p;
-	func (generalService) FOOBAR(context.Context, pb.RequestMessage) (pb.ResponseMessage, error) {}`
+	func (Service) FOOBAR(context.Context, pb.RequestMessage) (pb.ResponseMessage, error) {}`
 
 	svcName := strings.ToLower(sd.Service.Name)
 
@@ -324,13 +324,13 @@ func TestPruneDecls(t *testing.T) {
 		}
 
 		// ProtoMethod implements Service.
-		func (s protoService) ProtoMethod(ctx context.Context, in *pb.RequestMessage) (*pb.ResponseMessage, error) {
+		func (s Service) ProtoMethod(ctx context.Context, in *pb.RequestMessage) (*pb.ResponseMessage, error) {
 			var resp pb.ResponseMessage
 			return &resp, nil
 		}
 
 		// FOOBAR implements Service.
-		func (s protoService) FOOBAR(ctx context.Context, in *pb.RequestMessage) (*pb.ResponseMessage, error) {
+		func (s Service) FOOBAR(ctx context.Context, in *pb.RequestMessage) (*pb.ResponseMessage, error) {
 			var resp pb.ResponseMessage
 			return &resp, nil
 		}
