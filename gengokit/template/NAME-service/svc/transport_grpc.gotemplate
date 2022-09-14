@@ -30,7 +30,7 @@ func MakeGRPCServer(endpoints Endpoints, options ...kitgrpc.ServerOption) pb.{{.
 	// {{ ToLower .Service.Name }}
 	{{range $i := .Service.Methods}}
 		{{ToLower $i.Name}}: kitgrpc.NewServer(
-			endpoints.{{$i.Name}}Endpoint,
+			endpoints[{{$i.Name}}],
 			DecodeGRPC{{$i.Name}}Request,
 			EncodeGRPC{{$i.Name}}Response,
 			serverOptions...,

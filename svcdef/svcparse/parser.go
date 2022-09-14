@@ -396,7 +396,6 @@ func ParseMethod(lex *SvcLexer) (*Method, error) {
 
 	}
 
-
 	return toret, nil
 
 }
@@ -406,7 +405,7 @@ func ParseHttpBindings(lex *SvcLexer) ([]*HTTPBinding, error) {
 	rv := make([]*HTTPBinding, 0)
 	new_opt := &HTTPBinding{}
 
-	start:
+start:
 	tk, val := lex.GetTokenIgnoreWhitespace()
 	// If there's a comment before the declaration of a new HttpBinding, then
 	// we set that comment as the description of that HttpBinding. Since we're
@@ -432,13 +431,19 @@ func ParseHttpBindings(lex *SvcLexer) ([]*HTTPBinding, error) {
 		}
 	}
 
-	switch {
-	case val == "option":
+	switch val {
+	case "option":
 		err := fastForwardTill(lex, "(")
+		if err != nil {
+			return nil, err
+		}
 
-		tk, val := lex.GetTokenIgnoreWhitespace()
+		_, val = lex.GetTokenIgnoreWhitespace()
 		for val != "google" {
 			err = fastForwardTill(lex, ";")
+			if err != nil {
+				return nil, err
+			}
 			goto start
 		}
 
@@ -461,7 +466,7 @@ func ParseHttpBindings(lex *SvcLexer) ([]*HTTPBinding, error) {
 			} else if tk == COMMENT {
 				good_position = lex.GetPosition()
 			} else if val == "additional_bindings" {
-				lex.UnGetToPosition(good_position)
+				_ = lex.UnGetToPosition(good_position)
 				more_bindings, err := ParseHttpBindings(lex)
 				if err != nil {
 					return nil, err
@@ -483,7 +488,7 @@ func ParseHttpBindings(lex *SvcLexer) ([]*HTTPBinding, error) {
 			}
 			tk, val = lex.GetTokenIgnoreWhitespace()
 		}
-	case val == "additional_bindings":
+	case "additional_bindings":
 		err := fastForwardTill(lex, "{")
 		if err != nil {
 			return nil, err
@@ -499,7 +504,7 @@ func ParseHttpBindings(lex *SvcLexer) ([]*HTTPBinding, error) {
 			return nil, err
 		}
 		return append(rv, new_opt), nil
-	case val == "}":
+	case "}":
 		// End of RPC
 		return nil, nil
 	}
@@ -528,11 +533,8 @@ func ParseBindingFields(lex *SvcLexer) (fields []*Field, custom []*Field, err er
 			}
 		}
 		// No longer any more fields
-		if tk == CLOSE_BRACE && val == "}" {
-			lex.UnGetToken()
-			break
-		} else if val == "additional_bindings" {
-			lex.UnGetToken()
+		if (tk == CLOSE_BRACE && val == "}") || val == "additional_bindings" {
+			_ = lex.UnGetToken()
 			break
 		}
 		// Use recursion to parse custom HTTP verb sections
@@ -576,11 +578,11 @@ func ParseBindingFields(lex *SvcLexer) (fields []*Field, custom []*Field, err er
 			}
 		}
 
-		noqoute, err := strconv.Unquote(val)
+		unquote, err := strconv.Unquote(val)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "cannot unquote value %q", val)
 		}
-		field.Value = noqoute
+		field.Value = unquote
 
 		fields = append(fields, field)
 		field = &Field{}

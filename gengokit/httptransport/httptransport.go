@@ -11,12 +11,11 @@ import (
 	"text/template"
 	"unicode"
 
+	"github.com/DoNewsCode/truss/gengokit/httptransport/templates"
+	"github.com/DoNewsCode/truss/svcdef"
 	gogen "github.com/gogo/protobuf/protoc-gen-gogo/generator"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/DoNewsCode/truss/gengokit/httptransport/templates"
-	"github.com/DoNewsCode/truss/svcdef"
 )
 
 // Helper is the base struct for the data structure containing all the
@@ -64,7 +63,7 @@ func NewMethod(meth *svcdef.ServiceMethod) *Method {
 
 // NewBinding creates a Binding struct based on a svcdef.HTTPBinding. Because
 // NewBinding requires access to some of it's parent method's fields, instead
-// of passing a svcdef.HttpBinding directly, you instead pass a
+// of passing a svcdef.HTTPBinding directly, you instead pass a
 // svcdef.ServiceMethod and the index of the HTTPBinding within that methods
 // "HTTPBinding" slice.
 func NewBinding(i int, meth *svcdef.ServiceMethod) *Binding {
@@ -247,7 +246,7 @@ func (b *Binding) PathSections() []string {
 		}
 	}
 
-	rv := []string{}
+	var rv []string
 	parts := strings.Split(b.PathTemplate, "/")
 	for _, part := range parts {
 		if len(part) > 2 && part[0] == '{' && part[len(part)-1] == '}' {
@@ -500,16 +499,16 @@ func basePath(path string) string {
 // DigitEnglish is a map of runes of digits zero to nine to their lowercase
 // english language spellings.
 var DigitEnglish = map[rune]string{
-	'0': "zero",
-	'1': "one",
-	'2': "two",
-	'3': "three",
-	'4': "four",
-	'5': "five",
-	'6': "six",
-	'7': "seven",
-	'8': "eight",
-	'9': "nine",
+	'0': "Zero",
+	'1': "One",
+	'2': "Two",
+	'3': "Three",
+	'4': "Four",
+	'5': "Five",
+	'6': "Six",
+	'7': "Seven",
+	'8': "Eight",
+	'9': "Nine",
 }
 
 // EnglishNumber takes an integer and returns the english words that represents
@@ -522,8 +521,8 @@ func EnglishNumber(i int) string {
 	n := strconv.Itoa(i)
 	rv := ""
 	for _, c := range n {
-		if engl, ok := DigitEnglish[rune(c)]; ok {
-			rv += strings.Title(engl)
+		if v, ok := DigitEnglish[c]; ok {
+			rv += v
 		}
 	}
 	return rv

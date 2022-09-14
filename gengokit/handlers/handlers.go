@@ -161,7 +161,7 @@ func (m methodMap) pruneDecls(decls []ast.Decl, svcName string) []ast.Decl {
 				newDecls = append(newDecls, x)
 				continue
 			}
-			if ok := isValidFunc(x, m, svcName); ok == true {
+			if ok := isValidFunc(x, m, svcName); ok {
 				updateParams(x, m[name])
 				updateResults(x, m[name])
 				newDecls = append(newDecls, x)
@@ -265,11 +265,6 @@ func exprString(e ast.Expr) string {
 	}
 	// *foo.Foo or foo.Foo
 	if sel, _ := e.(*ast.SelectorExpr); sel != nil {
-		// *foo.Foo -> foo.Foo
-		if ptr, _ := e.(*ast.StarExpr); ptr != nil {
-			prefix = "*"
-			e = ptr.X
-		}
 		// foo.Foo
 		if x, _ := sel.X.(*ast.Ident); x != nil {
 			return prefix + x.Name + "." + sel.Sel.Name

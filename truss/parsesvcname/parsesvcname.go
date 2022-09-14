@@ -19,17 +19,17 @@ import (
 // name of the service in that protobuf definition file.
 func FromPaths(gopath []string, protoDefPaths []string) (string, error) {
 	td, err := ioutil.TempDir("", "parsesvcname")
-	defer os.RemoveAll(td)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create temporary directory for .pb.go files")
 	}
+	defer os.RemoveAll(td)
 	err = execprotoc.GeneratePBDotGo(protoDefPaths, gopath, td)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate .pb.go files from proto definition files")
 	}
 
 	// Get path names of .pb.go files
-	pbgoPaths := []string{}
+	var pbgoPaths []string
 	for _, p := range protoDefPaths {
 		base := filepath.Base(p)
 		barename := strings.TrimSuffix(base, filepath.Ext(p))
@@ -81,12 +81,16 @@ func FromReaders(gopath []string, protoDefReaders []io.Reader) (string, error) {
 	protoDefPaths := []string{}
 	for _, rdr := range protoDefReaders {
 		f, err := ioutil.TempFile(protoDir, "parsesvcname-fromreader")
+		if err != nil {
+			return "", errors.Wrap(err, "create temp file error")
+		}
 		_, err = io.Copy(f, rdr)
 		if err != nil {
+			f.Close()
 			return "", errors.Wrap(err, "couldn't copy contents of our proto file into the os.File: ")
 		}
-		path := f.Name()
 		f.Close()
+		path := f.Name()
 		protoDefPaths = append(protoDefPaths, path)
 	}
 	return FromPaths(gopath, protoDefPaths)

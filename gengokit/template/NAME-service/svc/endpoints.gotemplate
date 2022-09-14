@@ -11,7 +11,6 @@ package svc
 // formats.
 
 import (
-	"fmt"
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
@@ -32,11 +31,18 @@ import (
 // In a client, it's useful to collect individually constructed endpoints into a
 // single type that implements the Service interface. For example, you might
 // construct individual endpoints using transport/http.NewClient, combine them into an Endpoints, and return it to the caller as a Service.
-type Endpoints struct {
+type Endpoints map[Name]endpoint.Endpoint
+
+type Name string
+
+const (
+    ServiceName Name = "{{.PBPackageName}}.{{.Service.Name}}"
 {{range $i := .Service.Methods}}
-	{{$i.Name}}Endpoint    endpoint.Endpoint
+	{{$i.Name}} Name = "{{$i.Name}}"
 {{- end}}
-}
+
+    PathPrefix = "/{{.PBPackageName}}.{{.Service.Name}}"
+)
 
 func NewEndpoints(service pb.{{.Service.Name}}Server) Endpoints {
 
@@ -49,7 +55,7 @@ func NewEndpoints(service pb.{{.Service.Name}}Server) Endpoints {
 
 	endpoints := Endpoints{
 	{{range $i := .Service.Methods -}}
-		{{$i.Name}}Endpoint:    {{ToLower $i.Name}}Endpoint,
+		{{$i.Name}}:    {{ToLower $i.Name}}Endpoint,
 	{{end}}
 	}
 
@@ -59,7 +65,7 @@ func NewEndpoints(service pb.{{.Service.Name}}Server) Endpoints {
 // Endpoints
 {{range $i := .Service.Methods}}
 	func (e Endpoints) {{$i.Name}}(ctx context.Context, in *pb.{{GoName $i.RequestType.Name}}) (*pb.{{GoName $i.ResponseType.Name}}, error) {
-		response, err := e.{{$i.Name}}Endpoint(ctx, in)
+		response, err := e[{{$i.Name}}](ctx, in)
 		if err != nil {
 			return nil, err
 		}
@@ -88,57 +94,41 @@ func NewEndpoints(service pb.{{.Service.Name}}Server) Endpoints {
 // Use this for applying a set of middlewares to every endpoint in the service.
 // Optionally, endpoints can be passed in by name to be excluded from being wrapped.
 // WrapAllExcept(middleware, "Status", "Ping")
-func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...string) {
-	included := map[string]struct{}{
-		{{- range $i := .Service.Methods}}
-			"{{$i.Name}}": {},
-		{{- end}}
-	}
+func (e Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...Name) {
+	excludedMap := map[Name]struct{}{}
 
 	for _, ex := range excluded {
-		if _, ok := included[ex]; !ok {
-			panic(fmt.Sprintf("Excluded endpoint '%s' does not exist; see middlewares/endpoints.go", ex))
-		}
-		delete(included, ex)
+		excludedMap[ex] = struct{}{}
 	}
 
-	for inc := range included {
-		{{- range $i := .Service.Methods}}
-			if inc == "{{$i.Name}}" {
-				e.{{$i.Name}}Endpoint = middleware(e.{{$i.Name}}Endpoint)
-			}
-		{{- end}}
+	for inc, end := range e {
+		if _, ok := excludedMap[inc]; ok {
+			continue
+		}
+		e[inc] = middleware(end)
 	}
 }
 
 // LabeledMiddleware will get passed the endpoint name when passed to
 // WrapAllLabeledExcept, this can be used to write a generic metrics
 // middleware which can send the endpoint name to the metrics collector.
-type LabeledMiddleware func(string, endpoint.Endpoint) endpoint.Endpoint
+type LabeledMiddleware func(Name, endpoint.Endpoint) endpoint.Endpoint
 
 // WrapAllLabeledExcept wraps each Endpoint field of struct Endpoints with a
 // LabeledMiddleware, which will receive the name of the endpoint. See
 // LabeldMiddleware. See method WrapAllExept for details on excluded
 // functionality.
-func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoint) endpoint.Endpoint, excluded ...string) {
-	included := map[string]struct{}{
-		{{- range $i := .Service.Methods}}
-			"{{$i.Name}}": {},
-		{{- end}}
-	}
+func (e Endpoints) WrapAllLabeledExcept(middleware func(Name, endpoint.Endpoint) endpoint.Endpoint, excluded ...Name) {
+	excludedMap := map[Name]struct{}{}
 
 	for _, ex := range excluded {
-		if _, ok := included[ex]; !ok {
-			panic(fmt.Sprintf("Excluded endpoint '%s' does not exist; see middlewares/endpoints.go", ex))
-		}
-		delete(included, ex)
+		excludedMap[ex] = struct{}{}
 	}
 
-	for inc := range included {
-		{{- range $i := .Service.Methods}}
-			if inc == "{{$i.Name}}" {
-				e.{{$i.Name}}Endpoint = middleware("{{$i.Name}}", e.{{$i.Name}}Endpoint)
-			}
-		{{- end}}
+	for inc, end := range e {
+		if _, ok := excludedMap[inc]; ok {
+			continue
+		}
+		e[inc] = middleware(inc, end)
 	}
 }

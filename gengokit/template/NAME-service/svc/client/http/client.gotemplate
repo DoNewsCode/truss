@@ -1,2 +1,2 @@
-{{/* See go-truss/gengokit/kithttp/template.go for code */}}
+{{/* See go-truss/gengokit/httptransport/template.go for code */}}
 {{call .HTTPHelper.ClientTemplate .}}

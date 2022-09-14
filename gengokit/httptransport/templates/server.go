@@ -10,7 +10,7 @@ var ServerDecodeTemplate = `
 	func DecodeHTTP{{$binding.Label}}Request(_ context.Context, r *http.Request) (interface{}, error) {
 		defer r.Body.Close()
 		var req pb.{{GoName $binding.Parent.RequestType}}
-		buf, err := ioutil.ReadAll(r.Body)
+		buf, err := io.ReadAll(r.Body)
 		if err != nil {
 			return nil, errors.Wrapf(err, "cannot read body of http request")
 		}
@@ -72,7 +72,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -98,7 +97,7 @@ var (
 	_ = bytes.Compare
 	_ = strconv.Atoi
 	_ = kithttp.NewServer
-	_ = ioutil.NopCloser
+	_ = io.NopCloser
 	_ = pb.New{{.Service.Name}}Client
 	_ = io.Copy
 	_ = errors.Wrap
@@ -119,8 +118,8 @@ func MakeHTTPHandler(endpoints Endpoints, options ...kithttp.ServerOption) http.
 
 	{{range $method := .HTTPHelper.Methods}}
 		{{range $binding := $method.Bindings}}
-			m.Methods("{{$binding.Verb | ToUpper}}").Path("{{$binding.PathTemplate}}").Handler(kithttp.NewServer(
-				endpoints.{{$method.Name}}Endpoint,
+			m.Methods("{{$binding.Verb | ToUpper}}").Path(PathPrefix+"{{$binding.PathTemplate}}").Handler(kithttp.NewServer(
+				endpoints[{{$method.Name}}],
 				DecodeHTTP{{$binding.Label}}Request,
 				EncodeHTTPGenericResponse,
 				serverOptions...,

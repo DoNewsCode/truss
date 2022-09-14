@@ -38,6 +38,9 @@ func TestFromPaths(t *testing.T) {
 	}
 	defer os.RemoveAll(protoDir)
 	f, err := ioutil.TempFile(protoDir, "trusstest")
+	if err != nil {
+		t.Fatal(err)
+	}
 	_, err = io.Copy(f, strings.NewReader(protoStr))
 	if err != nil {
 		t.Fatal("couldn't copy contents of our proto file into the os.File: ", err)

@@ -94,7 +94,7 @@ var ClientEncodeTemplate = `
 		if err := encoder.Encode(toRet); err != nil {
 			return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
 		}
-		r.Body = ioutil.NopCloser(&buf)
+		r.Body = io.NopCloser(&buf)
 		{{- end }}
 		return nil
 	}
@@ -115,7 +115,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -139,7 +138,7 @@ var (
 	_ = kithttp.NewClient
 	_ = fmt.Sprint
 	_ = bytes.Compare
-	_ = ioutil.NopCloser
+	_ = io.NopCloser
 )
 
 // New returns a service backed by an HTTP server living at the remote
@@ -181,7 +180,7 @@ func New(instance string, options ...kithttp.ClientOption) (pb.{{.Service.Name}}
 	{{range $method := .HTTPHelper.Methods -}}
 		{{ if $method.Bindings -}}
 			{{ with $binding := index $method.Bindings 0 -}}
-				{{$method.Name}}Endpoint:    {{$binding.Label}}Endpoint,
+				svc.{{$method.Name}}:    {{$binding.Label}}Endpoint,
 			{{end}}
 		{{- end}}
 	{{- end}}

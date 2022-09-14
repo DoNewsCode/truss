@@ -29,8 +29,8 @@ func New(conn *grpc.ClientConn, options ...kitgrpc.ClientOption) (svc.Endpoints,
 				{
 					{{ToLower $i.Name}}Endpoint = kitgrpc.NewClient(
 						conn,
-						"{{$pkgName}}.{{$te.Service.Name}}",
-						"{{$i.Name}}",
+						string(svc.ServiceName),
+						string(svc.{{$i.Name}}),
 						EncodeGRPC{{$i.Name}}Request,
 						DecodeGRPC{{$i.Name}}Response,
 						pb.{{GoName $i.ResponseType.Name}}{},
@@ -43,7 +43,7 @@ func New(conn *grpc.ClientConn, options ...kitgrpc.ClientOption) (svc.Endpoints,
 
 	return svc.Endpoints{
 	{{range $i := .Service.Methods -}}
-		{{$i.Name}}Endpoint:    {{ToLower $i.Name}}Endpoint,
+		svc.{{$i.Name}}:    {{ToLower $i.Name}}Endpoint,
 	{{end}}
 	}, nil
 }

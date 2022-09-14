@@ -31,6 +31,12 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
+func fatalError(t *testing.T, err error) {
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestServerMethsTempl(t *testing.T) {
 	const def = `
 		syntax = "proto3";
@@ -63,19 +69,16 @@ func TestServerMethsTempl(t *testing.T) {
 		}
 	`
 	sd, err := svcdef.NewFromString(def, gopath)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 
 	var he handlerData
 	he.Methods = sd.Service.Methods
 	he.ServiceName = sd.Service.Name
 
 	gen, err := applyServerMethsTempl(he)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 	genBytes, err := ioutil.ReadAll(gen)
+	fatalError(t, err)
 	const expected = `
 		func (s Service) ProtoMethod(ctx context.Context, in *pb.RequestMessage) (*pb.ResponseMessage, error){
 			var resp pb.ResponseMessage
@@ -124,13 +127,14 @@ func TestApplyServerTempl(t *testing.T) {
 		PBPackage: "github.com/DoNewsCode/truss/gengokit/general-service",
 	}
 	sd, err := svcdef.NewFromString(def, gopath)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 	te, err := gengokit.NewData(sd, conf)
+	fatalError(t, err)
 
 	gen, err := applyServerTempl(te)
+	fatalError(t, err)
 	genBytes, err := ioutil.ReadAll(gen)
+	fatalError(t, err)
 	expected := `
         package proto
         
@@ -212,9 +216,7 @@ func TestIsValidFunc(t *testing.T) {
 		}
 	`
 	sd, err := svcdef.NewFromString(def, gopath)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 
 	m := newMethodMap(sd.Service.Methods)
 	const validUnexported = `package p;
@@ -297,9 +299,7 @@ func TestPruneDecls(t *testing.T) {
 		}
 	`
 	sd, err := svcdef.NewFromString(def, gopath)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 
 	m := newMethodMap(sd.Service.Methods)
 
@@ -429,9 +429,7 @@ func TestUpdateMethods(t *testing.T) {
 	`
 
 	sd, err := svcdef.NewFromString(def, gopath)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 
 	svc := sd.Service
 	allMethods := svc.Methods
@@ -442,21 +440,15 @@ func TestUpdateMethods(t *testing.T) {
 	}
 
 	te, err := gengokit.NewData(sd, conf)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 
 	svc.Methods = []*svcdef.ServiceMethod{allMethods[0]}
 
 	firstCode, err := renderService(svc, "", te)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 
 	secondCode, err := renderService(svc, firstCode, te)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 
 	if len(firstCode) != len(secondCode) {
 		t.Fatal("Generated service differs after regenerated with same definition\n" +
@@ -466,9 +458,7 @@ func TestUpdateMethods(t *testing.T) {
 	svc.Methods = append(svc.Methods, allMethods[1])
 
 	thirdCode, err := renderService(svc, secondCode, te)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 
 	if len(thirdCode) <= len(secondCode) {
 		t.Fatal("Generated service not longer after regenerated with additional service method\n" +
@@ -479,9 +469,7 @@ func TestUpdateMethods(t *testing.T) {
 	svc.Methods = svc.Methods[1:]
 
 	forthCode, err := renderService(svc, thirdCode, te)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 
 	if len(forthCode) >= len(thirdCode) {
 		t.Fatal("Generated service not shorter after regenerated with fewer service method\n" +
@@ -491,9 +479,7 @@ func TestUpdateMethods(t *testing.T) {
 	svc.Methods = allMethods
 
 	fifthCode, err := renderService(svc, forthCode, te)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fatalError(t, err)
 
 	if len(fifthCode) <= len(forthCode) {
 		t.Fatal("Generated service not longer after regenerated with additional service method\n" +

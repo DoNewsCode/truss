@@ -17,7 +17,7 @@ type RuneReader struct {
 	LineNo     int
 }
 
-func (self *RuneReader) ReadRune() (rune, error) {
+func (self *RuneReader) Read() (rune, error) {
 	var toret rune = 0
 	var err error
 
@@ -33,7 +33,7 @@ func (self *RuneReader) ReadRune() (rune, error) {
 	return toret, err
 }
 
-func (self *RuneReader) UnreadRune() error {
+func (self *RuneReader) Unread() error {
 	if self.RunePos == 0 {
 		return bufio.ErrInvalidUnreadRune
 	}
@@ -112,7 +112,7 @@ func BuildScanUnit(rr *RuneReader) (*ScanUnit, error) {
 
 	// Populate the buffer with at least one rune so even if it's an unknown
 	// character it will at least return this
-	ch, err := rr.ReadRune()
+	ch, err := rr.Read()
 	if err != nil {
 		return setReturn(), err
 	}
@@ -121,14 +121,14 @@ func BuildScanUnit(rr *RuneReader) (*ScanUnit, error) {
 	switch {
 	case ch == '/':
 		// Searching for comments beginning with '/'
-		ch, err = rr.ReadRune()
+		ch, err = rr.Read()
 		if err != nil {
 			return setReturn(), err
 		} else if ch == '/' {
 			// Handle single line comments of the form '//'
 			buf = append(buf, ch)
 			for {
-				ch, err = rr.ReadRune()
+				ch, err = rr.Read()
 				if err != nil {
 					return setReturn(), err
 				} else if ch == '\n' {
@@ -141,12 +141,12 @@ func BuildScanUnit(rr *RuneReader) (*ScanUnit, error) {
 			// Handle (potentially) multi-line comments of the form '/**/'
 			buf = append(buf, ch)
 			for {
-				ch, err = rr.ReadRune()
+				ch, err = rr.Read()
 				if err != nil {
 					return setReturn(), err
 				} else if ch == '*' {
 					buf = append(buf, ch)
-					ch, err = rr.ReadRune()
+					ch, err = rr.Read()
 					if err != nil {
 						return setReturn(), err
 					} else if ch == '/' {
@@ -160,19 +160,19 @@ func BuildScanUnit(rr *RuneReader) (*ScanUnit, error) {
 			}
 		} else {
 			// Not a comment, so unread the last Rune and return this '/' only
-			rr.UnreadRune()
+			rr.Unread()
 			return setReturn(), nil
 		}
 	case ch == '"':
 		// Handle strings
 		for {
-			ch, err = rr.ReadRune()
+			ch, err = rr.Read()
 			if err != nil {
 				return setReturn(), err
 			} else if ch == '\\' {
 				// Handle escape sequences within strings
 				buf = append(buf, ch)
-				ch, err = rr.ReadRune()
+				ch, err = rr.Read()
 				if err != nil {
 					return setReturn(), err
 				} else {
@@ -189,7 +189,7 @@ func BuildScanUnit(rr *RuneReader) (*ScanUnit, error) {
 	case unicode.IsSpace(ch):
 		// Group consecutive white space characters
 		for {
-			ch, err = rr.ReadRune()
+			ch, err = rr.Read()
 			if err != nil {
 				// Don't pass along this EOF since we did find a valid 'Unit'
 				// to return. This way, the next call of this function will
@@ -199,7 +199,7 @@ func BuildScanUnit(rr *RuneReader) (*ScanUnit, error) {
 				}
 				return setReturn(), err
 			} else if !unicode.IsSpace(ch) {
-				rr.UnreadRune()
+				rr.Unread()
 				break
 			}
 			buf = append(buf, ch)
@@ -207,14 +207,14 @@ func BuildScanUnit(rr *RuneReader) (*ScanUnit, error) {
 	case isIdent(ch):
 		// Group consecutive letters
 		for {
-			ch, err = rr.ReadRune()
+			ch, err = rr.Read()
 			if err != nil {
 				if err == io.EOF {
 					return setReturn(), nil
 				}
 				return setReturn(), err
 			} else if !isIdent(ch) {
-				rr.UnreadRune()
+				rr.Unread()
 				if string(buf) == "service" {
 					withinDef = true
 				}
@@ -224,13 +224,13 @@ func BuildScanUnit(rr *RuneReader) (*ScanUnit, error) {
 		}
 	case ch == '{':
 		braceLev += 1
-		if withinDef == true {
+		if withinDef {
 			withinDef = false
 			withinBody = true
 		}
 	case ch == '}':
 		braceLev -= 1
-		if withinBody == true && braceLev == 0 {
+		if withinBody && braceLev == 0 {
 			withinBody = false
 		}
 	}
