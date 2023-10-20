@@ -18,7 +18,7 @@ jobs:
       GO111MODULE: on
       PROTOC_VER: ${{ matrix.protoc }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
           path: go/src/github.com/DoNewsCode/truss
